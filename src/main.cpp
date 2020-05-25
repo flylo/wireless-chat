@@ -3,7 +3,7 @@
 #include <MessageDisplay.h>
 
 TxRx txRx = TxRx(2000, 11, 12);
-MessageDisplay messageDisplay = MessageDisplay();
+DisplayInterface displayInterface = DisplayInterface();
 
 void setup()
 {
@@ -14,9 +14,10 @@ void loop()
 {
   if (txRx.tryReceive())
   {
-    messageDisplay.displayFullMessage(txRx.getReceiveMsg());
+    displayInterface.displayFullMessage(txRx.getReceiveMsg());
   } else
   {
     txRx.transmit("Hello World");
   }
+  Serial.println("WOOO");
 }

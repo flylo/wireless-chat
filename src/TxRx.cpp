@@ -10,7 +10,10 @@ TxRx::TxRx(int speed, int rxPin, int txPin)
 bool TxRx::transmit(char *txMsg)
 {
   radio.send((uint8_t *)txMsg, strlen(txMsg));
-  return radio.waitPacketSent();
+  bool sent = radio.waitPacketSent();
+  Serial.println("Message Sent: ");
+  Serial.println(sent);
+  return sent;
 }
 
 char *TxRx::getReceiveMsg()
@@ -26,6 +29,7 @@ bool TxRx::tryReceive()
   {
     char *received = (char *)receive_buffer;
     rxMsg = received;
+    Serial.println("Message Received");
     return true;
   }
   return false;
@@ -33,11 +37,12 @@ bool TxRx::tryReceive()
 
 void TxRx::init()
 {
- if (!radio.init())
- {
-   Serial.println("Radio module failed to initialize");
- } else
- {
-   Serial.println("Radio module initialized successfully");
- }
+  radio.init();
+//  if (!radio.init())
+//  {
+//    Serial.println("Radio module failed to initialize");
+//  } else
+//  {
+//    Serial.println("Radio module initialized successfully");
+//  }
 }

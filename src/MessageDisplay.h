@@ -4,11 +4,11 @@
 #include <Wire.h>              // Library for I2C communication
 #include <LiquidCrystal_I2C.h> // Library for LCD
 
-class MessageDisplay
+class DisplayInterface
 {
 
 public:
-    MessageDisplay();
+    DisplayInterface();
     void displayFullMessage(char *msg);
     void init();
 };

@@ -3,12 +3,12 @@
 // NOTE: can't be member variable for some reason
 LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2);
 
-MessageDisplay::MessageDisplay()
+DisplayInterface::DisplayInterface()
 {
     init();
 }
 
-void MessageDisplay::displayFullMessage(char *msg)
+void DisplayInterface::displayFullMessage(char *msg)
 {
     lcd.setCursor(0, 0);
     lcd.print("Message Received!!");
@@ -18,7 +18,7 @@ void MessageDisplay::displayFullMessage(char *msg)
     Serial.println(msg);
 }
 
-void MessageDisplay::init()
+void DisplayInterface::init()
 {
     lcd.init();
     lcd.backlight();
