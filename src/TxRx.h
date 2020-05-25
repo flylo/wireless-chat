@@ -17,6 +17,7 @@ public:
   char *getReceiveMsg();
   bool transmit(char *txMsg);
   void init();
+  char getMode();
 };
 
 #endif
