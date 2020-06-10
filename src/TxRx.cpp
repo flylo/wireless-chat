@@ -6,6 +6,7 @@ TxRx::TxRx(int speed, int rxPin, int txPin)
   this->rxMsg = new char[32];
 }
 
+// TODO: transmit with String as well
 bool TxRx::transmit(char *txMsg)
 {
   radio.setModeTx();
@@ -57,6 +58,7 @@ bool TxRx::tryReceive()
   }
   return false;
 }
+
 char TxRx::getMode()
 {
   return radio.mode();
