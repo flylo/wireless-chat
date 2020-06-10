@@ -9,12 +9,15 @@ DisplayInterface::DisplayInterface()
 
 void DisplayInterface::displayFullMessage(char *msg)
 {
+    // There is probably a more efficient way than whiping LCD RAM every epoch
+    lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("Message Received!!");
-    lcd.setCursor(0, 1);
     lcd.print(msg);
-    Serial.print("Message: ");
-    Serial.println(msg);
+}
+
+void DisplayInterface::displayFullMessage(String msg)
+{
+    displayFullMessage(msg.begin());
 }
 
 void DisplayInterface::init()
