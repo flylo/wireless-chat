@@ -9,12 +9,12 @@ class TxRx
 
 private:
   RH_ASK radio;
-  mutable char *rxMsg;
+  String rxMsg;
 
 public:
   TxRx(int speed, int rxPin, int txPin);
   bool tryReceive();
-  char *getReceiveMsg();
+  String getReceiveMsg();
   bool transmit(char *txMsg);
   void init();
   char getMode();

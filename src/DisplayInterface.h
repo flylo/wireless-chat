@@ -7,11 +7,15 @@
 class DisplayInterface
 {
 
+private:
+  String lastDisplayed;
+
 // TODO: needs way of interacting with keyboard (appendChar, deleteChar, etc)
 public:
     DisplayInterface();
-    void displayFullMessage(char *msg);
-    void displayFullMessage(String msg);
+    void displayIncrementalMessage(char *msg);
+    void displayIncrementalMessage(String msg);
+    void displayWithClear(String msg);
     void init();
 };
 
