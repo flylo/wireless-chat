@@ -14,7 +14,8 @@ public:
     void init();
     void loop();
     void clear();
-    String get();
+    char *get();
+    bool escaped();
 };
 
 #endif
