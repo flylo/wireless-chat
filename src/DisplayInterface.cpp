@@ -17,35 +17,6 @@ void DisplayInterface::displayIncrementalMessage(char *msg, int pointer)
     Serial.println(msg);
     lcd.clear();
     lcd.print(msg);
-    // if (pointer == 0 && lastPointer > 0)
-    // {
-    //     Serial.println(F("Triggered: "));
-    //     Serial.println(F("1"));
-    //     lastPointer = 0;
-    //     lcd.clear();
-    //     return;
-    // }
-    // if (pointer > 0 && lastPointer != pointer)
-    // {
-    //     Serial.println(F("Triggered: "));
-    //     Serial.println(F("2"));
-    //     lcd.print(msg[pointer]);
-    //     lastPointer = pointer;
-    //     return;
-    // }
-    // if (pointer < lastDisplayed.length()) {
-    //     Serial.println(F("Triggered: "));
-    //     Serial.println(F("3"));
-    //     lcd.clear();
-    //     if (newMsg.length() > 0)
-    //     {
-    //         lcd.print(newMsg);
-    //         lastDisplayed = newMsg;
-    //     } else
-    //     {
-    //         lastDisplayed = "";
-    //     }
-    // }
 }
 
 void DisplayInterface::displayIncrementalMessage(String msg)
@@ -68,4 +39,6 @@ void DisplayInterface::init()
     lcd.init();
     lcd.clear();
     lcd.backlight();
+    lcd.print("LOLMOAR");
+    Serial.println("Successfully initialized LCD driver");
 }

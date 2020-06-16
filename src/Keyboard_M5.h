@@ -9,6 +9,9 @@
 class Keyboard_M5
 {
 
+private:
+    int pointer;
+    char *keyboardMsg;
 public:
     Keyboard_M5();
     void init();
