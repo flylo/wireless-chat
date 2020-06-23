@@ -29,13 +29,12 @@ void Keyboard_M5::init()
     }
 }
 
-// TODO; keep adding letters until stop signal, then add null terminator and send
 void Keyboard_M5::loop()
 {
     Wire.requestFrom(CARDKB_ADDR, 1);
     while (Wire.available())
     {
-        char c = Wire.read(); // receive a byte as characterif
+        char c = Wire.read();
         switch (int(c))
         {
         case 0:

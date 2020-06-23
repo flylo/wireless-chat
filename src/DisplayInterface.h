@@ -7,7 +7,6 @@
 class DisplayInterface
 {
 
-// TODO: needs way of interacting with keyboard (appendChar, deleteChar, etc)
 public:
     DisplayInterface();
     void displayMsg(char *msg);

@@ -12,14 +12,14 @@ DisplayInterface::DisplayInterface()
 
 void DisplayInterface::displayMsg(char *msg)
 {
-    // There is probably a more efficient way than whiping LCD RAM every epoch
+    // There is probably a more efficient way than wiping LCD RAM every epoch
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print(msg);
     for (int i = 0; i < 16; i++)
     {
-        msgLine0[i] = msg[i];
-        msgLine1[i] = msg[i + 16];
+        msgLine0[i] = (char) msg[i];
+        msgLine1[i] = (char) msg[i + 16];
     }
     lcd.setCursor(0, 0);
     lcd.print(msgLine0);
@@ -36,5 +36,5 @@ void DisplayInterface::init()
 {
     lcd.init();
     lcd.backlight();
-    Serial.println("lcdinit");
+    Serial.println("LCD Initialized");
 }

@@ -13,10 +13,10 @@ private:
 public:
   TxRx();
   bool tryReceive();
-  char *getReceiveMsg();
   bool transmit(char *txMsg);
+  char *getReceiveMsg();
   void init();
-  char getMode();
+  void clear();
 };
 
 #endif

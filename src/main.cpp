@@ -2,18 +2,15 @@
 #include <TxRx.h>
 #include <DisplayInterface.h>
 #include <Keyboard_M5.h>
+#include <PiezoBuzzer.h>
 #include <TimedAction.h>
 #include <MemoryFree.h>
-#include <RH_NRF24.h>
 
-const int buzzer = 9;
-const char sentMsg[5] = "Sent";
 TxRx txRx = TxRx();
 DisplayInterface displayInterface = DisplayInterface();
 Keyboard_M5 keyboardM5 = Keyboard_M5();
-RH_NRF24 nrf24;
+PiezoBuzzer piezoBuzzer = PiezoBuzzer();
 
-// TODO: break this out - shouldn't need defined loops here
 void keyboardLoop()
 {
   int start = millis();
@@ -23,7 +20,6 @@ void keyboardLoop()
   Serial.println(end - start);
 }
 
-// TODO; lots of leaky abstractions. move things to a display::loop()
 void displayLoop()
 {
   int start = millis();
@@ -33,9 +29,10 @@ void displayLoop()
   if (keyboardM5.escaped())
   {
     Serial.println("clearing");
+    // TODO: transmit in the display loop makes no sense
     txRx.transmit(keyboardM5.get());
     keyboardM5.clear();
-    displayInterface.displayMsg(*sentMsg);
+    displayInterface.displayMsg("Sent!");
     delay(1000);
   }
   int end = millis();
@@ -50,11 +47,10 @@ void receiveLoop()
   if (txRx.tryReceive())
   {
     Serial.println(F("Received!"));
-    tone(buzzer, 1000);
-    delay(300);
-    noTone(buzzer);
-    Serial.println(txRx.getReceiveMsg());
-    displayInterface.displayMsg(txRx.getReceiveMsg());
+    piezoBuzzer.buzz();
+    displayInterface.displayMsg((char *)txRx.getReceiveMsg());
+    delay(5000);
+    txRx.clear();
   }
   int end = millis();
   Serial.println("Receive MS:");
@@ -62,7 +58,7 @@ void receiveLoop()
 }
 
 TimedAction keyboardLoopAction = TimedAction(100, keyboardLoop);
-TimedAction displayLoopAction = TimedAction(100, displayLoop);
+TimedAction displayLoopAction = TimedAction(300, displayLoop);
 TimedAction receiveLoopAction = TimedAction(100, receiveLoop);
 
 void setup()
@@ -74,8 +70,7 @@ void setup()
   displayInterface.init();
   keyboardM5.init();
   txRx.init();
-  // TODO; OO setup for buzzer
-  pinMode(buzzer, OUTPUT);
+  piezoBuzzer.init();
 }
 
 //  TODO: Keyboard firmware seems to store variables

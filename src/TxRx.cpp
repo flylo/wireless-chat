@@ -1,19 +1,12 @@
 #include "TxRx.h"
 
-char rxMsg[32];
+char rxMsg[RH_NRF24_MAX_MESSAGE_LEN];
 TxRx::TxRx()
 {
 }
 
-// TODO: transmit with String as well
 bool TxRx::transmit(char *txMsg)
 {
-  // radio.setModeTx();
-  // while (radio.mode() == RHGenericDriver::RHModeRx)
-  // {
-  //   radio.setModeTx();
-  //   delay(500);
-  // }
   radio.send((uint8_t *)txMsg, strlen(txMsg));
   bool sent = radio.waitPacketSent();
   return sent;
@@ -21,34 +14,29 @@ bool TxRx::transmit(char *txMsg)
 
 char *TxRx::getReceiveMsg()
 {
-  return *rxMsg;
+  return rxMsg;
 }
 
 bool TxRx::tryReceive()
 {
-  // radio.setModeRx();
-  // while (radio.mode() == RHGenericDriver::RHModeTx)
-  // {
-  //   radio.setModeRx();
-  //   delay(500);
-  // }
-  uint8_t receive_buffer[32];
+  uint8_t receive_buffer[RH_NRF24_MAX_MESSAGE_LEN];
   uint8_t buflen = sizeof(receive_buffer);
   if (radio.recv(receive_buffer, &buflen))
   {
-    for (int i = 0; i < 32; i++)
+    // TODO: make sure we use this everywhere
+    for (int i = 0; i < RH_NRF24_MAX_MESSAGE_LEN; i++)
     {
-      rxMsg[i] = receive_buffer[i];
+      char c = (char)receive_buffer[i];
+      // https://www.december.com/html/spec/ascii.html
+      // We remove NUL, SOH, STX, ETX
+      if (int(c) > 3)
+      {
+        rxMsg[i] = c;
+      }
     }
-    // rxMsg = (char *)receive_buffer;
     return true;
   }
   return false;
-}
-
-char TxRx::getMode()
-{
-  return radio.mode();
 }
 
 void TxRx::init()
@@ -62,4 +50,12 @@ void TxRx::init()
     Serial.println("setRF failed");
   // Try to receive to clear out the buffer
   tryReceive();
+}
+
+void TxRx::clear()
+{
+  for (int i = 0; i < 32; i++)
+  {
+    rxMsg[i] = '\0';
+  }
 }
