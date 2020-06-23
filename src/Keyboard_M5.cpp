@@ -1,36 +1,16 @@
 #include <Keyboard_M5.h>
 
-String msg;
+const int BUF_SIZE = 31;
 const int DEL = 8;
 const int RETURN = 13;
 const char NULL_CHAR = '\0';
 const char ESC_CHAR = '\x1B';
 
-// TODO; don't need to keep
-#ifdef __arm__
-// should use uinstd.h to define sbrk but Due causes a conflict
-extern "C" char *sbrk(int incr);
-#else  // __ARM__
-extern char *__brkval;
-#endif // __arm__
-
-int freeMemoryMoar()
-{
-    char top;
-#ifdef __arm__
-    return &top - reinterpret_cast<char *>(sbrk(0));
-#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
-    return &top - __brkval;
-#else  // __arm__
-    return __brkval ? &top - __brkval : &top - __malloc_heap_start;
-#endif // __arm__
-}
-// TODO: smoke
-
 // TODO: initialize with a max buffer length
 Keyboard_M5::Keyboard_M5()
 {
-    msg = "";
+    keyboardMsgBuffer = new char[BUF_SIZE];
+    pointer = 0;
 }
 
 void Keyboard_M5::init()
@@ -42,17 +22,19 @@ void Keyboard_M5::init()
     {
         Wire.read();
     }
+    // Clear out the buffer
+    for (int i = 0; i < BUF_SIZE; i++)
+    {
+        keyboardMsgBuffer[i] = NULL_CHAR;
+    }
 }
 
 // TODO; keep adding letters until stop signal, then add null terminator and send
 void Keyboard_M5::loop()
 {
-    Serial.println(F("Trying to request from wire"));
-    Serial.println(freeMemoryMoar());
     Wire.requestFrom(CARDKB_ADDR, 1);
     while (Wire.available())
     {
-        Serial.println(F("Trying to read from wire"));
         char c = Wire.read(); // receive a byte as characterif
         switch (int(c))
         {
@@ -60,37 +42,45 @@ void Keyboard_M5::loop()
             // do nothing
             break;
         case DEL:
-            if (msg.length() > 0)
+            if (pointer > 0)
             {
-                msg = msg.substring(0, msg.length() - 1);
+                keyboardMsgBuffer[pointer - 1] = NULL_CHAR;
             }
+            pointer--;
             break;
         case RETURN:
-            msg = msg + ESC_CHAR;
+            keyboardMsgBuffer[pointer] = ESC_CHAR;
             break;
         default:
-            Serial.println(F("Adding char"));
-            Serial.println(freeMemoryMoar());
-            Serial.println(msg);
-            Serial.println(c);
-            Serial.println("moar");
-            msg += c;
-            Serial.println("Updated message");
+            if (pointer < BUF_SIZE - 1)
+            {
+                Serial.println(c);
+                keyboardMsgBuffer[pointer] = c;
+                pointer++;
+                Serial.println(keyboardMsgBuffer);
+            }
             break;
         }
-        Serial.println("reached end of keyboard loop");
     }
 }
 
 void Keyboard_M5::clear()
 {
-    msg = "";
+    int i = 0;
+    while (i < BUF_SIZE)
+    {
+        keyboardMsgBuffer[i] = NULL_CHAR;
+        i++;
+    }
+    pointer = 0;
 }
 
-String Keyboard_M5::get()
+char *Keyboard_M5::get()
 {
-    Serial.println(F("msg:"));
-    Serial.println(freeMemoryMoar());
-    Serial.println(msg);
-    return msg;
+    return keyboardMsgBuffer;
+}
+
+bool Keyboard_M5::escaped()
+{
+    return keyboardMsgBuffer[pointer] == ESC_CHAR;
 }

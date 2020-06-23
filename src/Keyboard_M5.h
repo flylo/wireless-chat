@@ -9,12 +9,16 @@
 class Keyboard_M5
 {
 
+private:
+    int pointer;
+    char *keyboardMsgBuffer;
 public:
     Keyboard_M5();
     void init();
     void loop();
     void clear();
-    String get();
+    char *get();
+    bool escaped();
 };
 
 #endif
