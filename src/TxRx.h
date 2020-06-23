@@ -11,7 +11,7 @@ private:
   RH_NRF24 radio;
 
 public:
-  TxRx(int speed, int rxPin, int txPin);
+  TxRx();
   bool tryReceive();
   char *getReceiveMsg();
   bool transmit(char *txMsg);

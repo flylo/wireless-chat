@@ -1,7 +1,7 @@
 #include "TxRx.h"
 
 char rxMsg[32];
-TxRx::TxRx(int speed, int rxPin, int txPin)
+TxRx::TxRx()
 {
 }
 

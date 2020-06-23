@@ -8,7 +8,7 @@
 
 const int buzzer = 9;
 const char sentMsg[5] = "Sent";
-TxRx txRx = TxRx(2000, 11, 12);
+TxRx txRx = TxRx();
 DisplayInterface displayInterface = DisplayInterface();
 Keyboard_M5 keyboardM5 = Keyboard_M5();
 RH_NRF24 nrf24;
