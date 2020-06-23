@@ -2,43 +2,39 @@
 
 // NOTE: can't be member variable for some reason
 LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2);
-
+char msgLine0[17];
+char msgLine1[17];
+int pointer = 0;
 
 DisplayInterface::DisplayInterface()
 {
-    lastPointer = 0;
 }
 
-// TODO: clean all the bullshit prints
-void DisplayInterface::displayIncrementalMessage(char *msg, int pointer)
+void DisplayInterface::displayMsg(char *msg)
 {
     // There is probably a more efficient way than whiping LCD RAM every epoch
-    Serial.println(F("Displaying"));
-    Serial.println(msg);
     lcd.clear();
+    lcd.setCursor(0, 0);
     lcd.print(msg);
-}
-
-void DisplayInterface::displayIncrementalMessage(String msg)
-{
-    displayIncrementalMessage(msg.begin());
-}
-
-void DisplayInterface::displayWithClear(String msg)
-{
-    lcd.clear();
-    lcd.print(msg);
-    // TODO: return to previous buffer once we've read message
-    // delay(5000);
-    // lcd.clear();
-    // lcd.print(lastDisplayed);
+    for (int i = 0; i < 16; i++)
+    {
+        msgLine0[i] = msg[i];
+        msgLine1[i] = msg[i + 16];
+    }
+    lcd.setCursor(0, 0);
+    lcd.print(msgLine0);
+    lcd.setCursor(0, 1);
+    lcd.print(msgLine1);
+    for (int i = 0; i < 16; i++)
+    {
+        msgLine0[i] = '\0';
+        msgLine1[i] = '\0';
+    }
 }
 
 void DisplayInterface::init()
 {
     lcd.init();
-    lcd.clear();
     lcd.backlight();
-    lcd.print("LOLMOAR");
-    Serial.println("Successfully initialized LCD driver");
+    Serial.println("lcdinit");
 }

@@ -1,14 +1,15 @@
 #include <Arduino.h>
-#include <TxRx.h>
+// #include <TxRx.h>
 #include <DisplayInterface.h>
 #include <Keyboard_M5.h>
-#include <Wire.h>
 #include <TimedAction.h>
+#include <MemoryFree.h>
 
-const int buzzer = 9;
+// const int buzzer = 9;
 // TxRx txRx = TxRx(2000, 11, 12);
 DisplayInterface displayInterface = DisplayInterface();
 Keyboard_M5 keyboardM5 = Keyboard_M5();
+
 
 // TODO: break this out - shouldn't need defined loops here
 void keyboardLoop()
@@ -21,22 +22,22 @@ void keyboardLoop()
   Serial.println(end - start);
 }
 
-// TODO; lots of leaky abstractions
+// TODO; lots of leaky abstractions. move things to a display::loop()
 void displayLoop()
 {
   int start = millis();
   Serial.println(F("trying to display"));
   Serial.println(keyboardM5.get());
-  // String& ref = displayMsg;
-  // Serial.println(ref);
+  displayInterface.displayMsg(keyboardM5.get());
   if (keyboardM5.escaped())
   {
+    Serial.println("clearing");
     // txRx.transmit(keyboardM5.get());
     keyboardM5.clear();
-    displayInterface.displayIncrementalMessage(F("Sent!!"));
+    // displayInterface.displayIncrementalMessage(F("Sent!!"));
     delay(1000);
   }
-  displayInterface.displayIncrementalMessage(keyboardM5.get());
+  // displayInterface.displayIncrementalMessage(keyboardM5.get());
   int end = millis();
   Serial.println("Display MS:");
   Serial.println(end - start);
@@ -67,6 +68,9 @@ TimedAction displayLoopAction = TimedAction(100, displayLoop);
 void setup()
 {
   Serial.begin(9600);
+  Serial.println("initializing");
+  Serial.print("freeMemory()=");
+  Serial.println(freeMemory());
   displayInterface.init();
   keyboardM5.init();
   // txRx.init();
@@ -77,10 +81,9 @@ void setup()
 //  TODO: Keyboard firmware seems to store variables
 void loop()
 {
-  // displayInterface.displayIncrementalMessage("LOLOL");
-  // delay(2000);
   Serial.println(F("main loop:"));
-  // Serial.println(keyboardM5.get());
+  Serial.print("freeMemory()=");
+  Serial.println(freeMemory());
   keyboardLoopAction.check();
   displayLoopAction.check();
   // receiveLoopAction.check();

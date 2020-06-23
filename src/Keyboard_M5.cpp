@@ -1,6 +1,6 @@
 #include <Keyboard_M5.h>
 
-const int BUF_SIZE = 8;
+const int BUF_SIZE = 31;
 const int DEL = 8;
 const int RETURN = 13;
 const char NULL_CHAR = '\0';
@@ -9,13 +9,12 @@ const char ESC_CHAR = '\x1B';
 // TODO: initialize with a max buffer length
 Keyboard_M5::Keyboard_M5()
 {
-    keyboardMsg[BUF_SIZE];
+    keyboardMsgBuffer = new char[BUF_SIZE];
     pointer = 0;
 }
 
 void Keyboard_M5::init()
 {
-    Serial.println("initializing keyboard driver");
     Wire.begin();
     //  Clear out anything on the wire
     Wire.requestFrom(CARDKB_ADDR, 1);
@@ -23,13 +22,16 @@ void Keyboard_M5::init()
     {
         Wire.read();
     }
-    Serial.println("Successfully initialized keyboard driver");
+    // Clear out the buffer
+    for (int i = 0; i < BUF_SIZE; i++)
+    {
+        keyboardMsgBuffer[i] = NULL_CHAR;
+    }
 }
 
 // TODO; keep adding letters until stop signal, then add null terminator and send
 void Keyboard_M5::loop()
 {
-    Serial.println("in loop");
     Wire.requestFrom(CARDKB_ADDR, 1);
     while (Wire.available())
     {
@@ -42,16 +44,21 @@ void Keyboard_M5::loop()
         case DEL:
             if (pointer > 0)
             {
-                keyboardMsg[pointer - 1] = NULL_CHAR;
+                keyboardMsgBuffer[pointer - 1] = NULL_CHAR;
             }
             pointer--;
             break;
         case RETURN:
-            keyboardMsg[pointer] = ESC_CHAR;
+            keyboardMsgBuffer[pointer] = ESC_CHAR;
             break;
         default:
-            keyboardMsg[pointer] = c;
-            pointer++;
+            if (pointer < BUF_SIZE - 1)
+            {
+                Serial.println(c);
+                keyboardMsgBuffer[pointer] = c;
+                pointer++;
+                Serial.println(keyboardMsgBuffer);
+            }
             break;
         }
     }
@@ -62,7 +69,7 @@ void Keyboard_M5::clear()
     int i = 0;
     while (i < BUF_SIZE)
     {
-        keyboardMsg[i] = NULL_CHAR;
+        keyboardMsgBuffer[i] = NULL_CHAR;
         i++;
     }
     pointer = 0;
@@ -70,10 +77,10 @@ void Keyboard_M5::clear()
 
 char *Keyboard_M5::get()
 {
-    return keyboardMsg;
+    return keyboardMsgBuffer;
 }
 
 bool Keyboard_M5::escaped()
 {
-    return keyboardMsg[pointer] == ESC_CHAR;
+    return keyboardMsgBuffer[pointer] == ESC_CHAR;
 }

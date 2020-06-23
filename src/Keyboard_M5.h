@@ -11,7 +11,7 @@ class Keyboard_M5
 
 private:
     int pointer;
-    char *keyboardMsg;
+    char *keyboardMsgBuffer;
 public:
     Keyboard_M5();
     void init();

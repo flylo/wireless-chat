@@ -12,22 +12,16 @@ bool TxRx::transmit(char *txMsg)
   radio.setModeTx();
   while (radio.mode() == RHGenericDriver::RHModeRx)
   {
-    Serial.println(F("Waiting..."));
-    Serial.println(radio.mode());
     radio.setModeTx();
     delay(500);
   }
   radio.send((uint8_t *)txMsg, strlen(txMsg));
   bool sent = radio.waitPacketSent();
-  Serial.println(F("Message Sent: "));
-  Serial.println(sent);
   return sent;
 }
 
 String TxRx::getReceiveMsg()
 {
-  Serial.println(F("getter"));
-  Serial.println(rxMsg);
   return rxMsg;
 }
 
@@ -36,8 +30,6 @@ bool TxRx::tryReceive()
   radio.setModeRx();
   while (radio.mode() == RHGenericDriver::RHModeTx)
   {
-    Serial.println(F("Waiting..."));
-    Serial.println(radio.mode());
     radio.setModeRx();
     delay(500);
   }
@@ -46,8 +38,6 @@ bool TxRx::tryReceive()
   if (radio.recv(receive_buffer, &buflen))
   {
     rxMsg = String((char *)receive_buffer);
-    Serial.println(F("Message Received"));
-    Serial.println(rxMsg);
     return true;
   }
   return false;
@@ -62,10 +52,8 @@ void TxRx::init()
 {
  if (!radio.init())
  {
-   Serial.println(F("Radio module failed to initialize"));
  } else
  {
-   Serial.println(F("Radio module initialized successfully"));
  }
  // Try to receive to clear out the buffer
  tryReceive();
