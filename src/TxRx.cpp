@@ -1,12 +1,27 @@
 #include "TxRx.h"
 
 char rxMsg[RH_NRF24_MAX_MESSAGE_LEN];
-TxRx::TxRx()
+TxRx::TxRx(char *PIN)
 {
+  RHEncryptedDriver(&radio, )
 }
 
 bool TxRx::transmit(char *txMsg)
 {
+  radio.send((uint8_t *)"LOL");
+  radio.waitAvailableTimeout(6000);
+  uint8_t ackPinBuffer[16];
+  uint8_t len = sizeof(ackPinBuffer);
+  if (radio.recv(ackPinBuffer, &len))
+  {
+    int i = 0;
+    while (i < len)
+    {
+      // TODO: finish...
+      char c = ackPinBuffer[i];
+      if ()
+    }
+  }
   radio.send((uint8_t *)txMsg, strlen(txMsg));
   bool sent = radio.waitPacketSent();
   return sent;

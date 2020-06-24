@@ -6,6 +6,8 @@
 #include <TimedAction.h>
 #include <MemoryFree.h>
 
+const uint8_t PIN_SIZE = 16;
+char PIN[PIN_SIZE];
 TxRx txRx = TxRx();
 DisplayInterface displayInterface = DisplayInterface();
 Keyboard_M5 keyboardM5 = Keyboard_M5();
@@ -61,6 +63,57 @@ TimedAction keyboardLoopAction = TimedAction(100, keyboardLoop);
 TimedAction displayLoopAction = TimedAction(300, displayLoop);
 TimedAction receiveLoopAction = TimedAction(100, receiveLoop);
 
+void enterPin()
+{
+  displayInterface.displayMsg("Wireless Chat Appliance");
+  delay(2000);
+  char pinMsg[32];
+  char *promptMsg = "Enter PIN:";
+  while (!keyboardM5.escaped())
+  {
+    uint8_t i = 0;
+    while (i < 16)
+    {
+      if (i < strlen(promptMsg))
+      {
+        pinMsg[i] = promptMsg[i];
+      }
+      else
+      {
+        pinMsg[i] = '\0';
+      }
+      i++;
+    }
+    keyboardM5.loop();
+    char *currentPinBuffer = keyboardM5.get();
+    uint8_t j = 0;
+    while (j < PIN_SIZE)
+    {
+      pinMsg[j + PIN_SIZE] = currentPinBuffer[j];
+      PIN[j] = currentPinBuffer[j];
+      j++;
+    }
+    displayInterface.displayMsg(pinMsg);
+    delay(200);
+  }
+  char *currentPinBuffer = keyboardM5.get();
+  int j = 0;
+  while (j < PIN_SIZE)
+  {
+    PIN[j] = currentPinBuffer[j];
+    j++;
+  }
+  keyboardM5.clear();
+  displayInterface.displayMsg("Success!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
+  delay(2000);
+  displayInterface.displayMsg("Welcome to Chat!");
+  delay(2000);
+  displayInterface.displayMsg("Using PIN:");
+  delay(2000);
+  displayInterface.displayMsg(PIN);
+  delay(2000);
+}
+
 void setup()
 {
   Serial.begin(9600);
@@ -71,9 +124,9 @@ void setup()
   keyboardM5.init();
   txRx.init();
   piezoBuzzer.init();
+  enterPin();
 }
 
-//  TODO: Keyboard firmware seems to store variables
 void loop()
 {
   Serial.println(F("main loop:"));

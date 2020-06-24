@@ -2,6 +2,7 @@
 #define TX_RX_H
 #include <Arduino.h>
 #include <RH_NRF24.h>
+#include <RHEncryptedDriver.h>
 #include <SPI.h>
 
 class TxRx
@@ -9,9 +10,10 @@ class TxRx
 
 private:
   RH_NRF24 radio;
+  RHEncryptedDriver encryptedDriver;
 
 public:
-  TxRx();
+  TxRx(char* PIN);
   bool tryReceive();
   bool transmit(char *txMsg);
   char *getReceiveMsg();
