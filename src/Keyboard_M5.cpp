@@ -1,6 +1,6 @@
 #include <Keyboard_M5.h>
 
-const int BUF_SIZE = 31;
+const int BUF_SIZE = 30;
 const int DEL = 8;
 const int RETURN = 13;
 const char NULL_CHAR = '\0';
@@ -23,7 +23,7 @@ void Keyboard_M5::init()
         Wire.read();
     }
     // Clear out the buffer
-    for (int i = 0; i < BUF_SIZE; i++)
+    for (int i = 1; i < BUF_SIZE; i++)
     {
         keyboardMsgBuffer[i] = NULL_CHAR;
     }
@@ -65,7 +65,7 @@ void Keyboard_M5::loop()
 
 void Keyboard_M5::clear()
 {
-    int i = 0;
+    int i = 1;
     while (i < BUF_SIZE)
     {
         keyboardMsgBuffer[i] = NULL_CHAR;
