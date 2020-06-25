@@ -4,13 +4,14 @@
 #include <RH_NRF24.h>
 #include <RHEncryptedDriver.h>
 #include <SPI.h>
+// TODO: need?
+#include <AES.h>
 
 class TxRx
 {
 
-private:
-  RH_NRF24 radio;
-  RHEncryptedDriver encryptedDriver;
+// private:
+  // RH_NRF24 radio;
 
 public:
   TxRx(char* PIN);

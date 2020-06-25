@@ -8,7 +8,7 @@
 
 const uint8_t PIN_SIZE = 16;
 char PIN[PIN_SIZE];
-TxRx txRx = TxRx();
+TxRx txRx = TxRx(*PIN);
 DisplayInterface displayInterface = DisplayInterface();
 Keyboard_M5 keyboardM5 = Keyboard_M5();
 PiezoBuzzer piezoBuzzer = PiezoBuzzer();

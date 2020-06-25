@@ -1,29 +1,34 @@
 #include "TxRx.h"
 
 char rxMsg[RH_NRF24_MAX_MESSAGE_LEN];
+RH_NRF24 radio;
+AES128 aes = AES128();
+RHEncryptedDriver encryptedDriver(radio, aes);
+
 TxRx::TxRx(char *PIN)
 {
-  RHEncryptedDriver(&radio, )
+  aes.setKey(PIN, strlen(PIN));
 }
 
 bool TxRx::transmit(char *txMsg)
 {
-  radio.send((uint8_t *)"LOL");
-  radio.waitAvailableTimeout(6000);
-  uint8_t ackPinBuffer[16];
-  uint8_t len = sizeof(ackPinBuffer);
-  if (radio.recv(ackPinBuffer, &len))
-  {
-    int i = 0;
-    while (i < len)
-    {
-      // TODO: finish...
-      char c = ackPinBuffer[i];
-      if ()
-    }
-  }
-  radio.send((uint8_t *)txMsg, strlen(txMsg));
-  bool sent = radio.waitPacketSent();
+  // TODO: acking logic
+  // radio.send((uint8_t *)"LOL");
+  // radio.waitAvailableTimeout(6000);
+  // uint8_t ackPinBuffer[16];
+  // uint8_t len = sizeof(ackPinBuffer);
+  // if (radio.recv(ackPinBuffer, &len))
+  // {
+  //   int i = 0;
+  //   while (i < len)
+  //   {
+  //     // TODO: finish...
+  //     char c = ackPinBuffer[i];
+  //     if ()
+  //   }
+  // }
+  encryptedDriver.send((uint8_t *)txMsg, strlen(txMsg));
+  bool sent = encryptedDriver.waitPacketSent();
   return sent;
 }
 
@@ -36,7 +41,7 @@ bool TxRx::tryReceive()
 {
   uint8_t receive_buffer[RH_NRF24_MAX_MESSAGE_LEN];
   uint8_t buflen = sizeof(receive_buffer);
-  if (radio.recv(receive_buffer, &buflen))
+  if (encryptedDriver.recv(receive_buffer, &buflen))
   {
     // TODO: make sure we use this everywhere
     for (int i = 0; i < RH_NRF24_MAX_MESSAGE_LEN; i++)
