@@ -4,7 +4,6 @@
 #include <RH_NRF24.h>
 #include <RHEncryptedDriver.h>
 #include <SPI.h>
-// TODO: need?
 #include <AES.h>
 
 class TxRx
