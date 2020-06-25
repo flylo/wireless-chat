@@ -5,9 +5,8 @@ RH_NRF24 radio;
 AES128 aes = AES128();
 RHEncryptedDriver encryptedDriver(radio, aes);
 
-TxRx::TxRx(char *PIN)
+TxRx::TxRx()
 {
-  aes.setKey(PIN, strlen(PIN));
 }
 
 bool TxRx::transmit(char *txMsg)
@@ -59,10 +58,13 @@ bool TxRx::tryReceive()
   return false;
 }
 
-void TxRx::init()
+void TxRx::init(char *PIN)
 {
-  if (!radio.init())
+  aes.setKey(PIN, 16);
+  if (!encryptedDriver.init())
     Serial.println("init failed");
+  // if (!radio.init())
+  //   Serial.println("init failed");
   // Defaults after init are 2.402 GHz (channel 2), 2Mbps, 0dBm
   if (!radio.setChannel(1))
     Serial.println("setChannel failed");

@@ -11,12 +11,16 @@ RHEncryptedDriver::RHEncryptedDriver(RHGenericDriver& driver, BlockCipher& block
     : _driver(driver),
       _blockcipher(blockcipher)
 {
+	Serial.println("keysize construct:");
+  	Serial.println(_blockcipher.keySize());
     _buffer = (uint8_t *)calloc(_driver.maxMessageLength(), sizeof(uint8_t));
 }
 
 bool RHEncryptedDriver::recv(uint8_t* buf, uint8_t* len)
 {
     int h = 0; // Index of output _buffer
+	Serial.println("keysize rcv:");
+  	Serial.println(_blockcipher.keySize());
 
     bool status = _driver.recv(_buffer, len);
     if (status && buf && len)

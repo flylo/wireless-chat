@@ -14,11 +14,11 @@ class TxRx
   // RH_NRF24 radio;
 
 public:
-  TxRx(char* PIN);
+  TxRx();
   bool tryReceive();
   bool transmit(char *txMsg);
   char *getReceiveMsg();
-  void init();
+  void init(char* PIN);
   void clear();
 };
 

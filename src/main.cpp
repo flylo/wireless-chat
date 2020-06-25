@@ -8,7 +8,7 @@
 
 const uint8_t PIN_SIZE = 16;
 char PIN[PIN_SIZE];
-TxRx txRx = TxRx(*PIN);
+TxRx txRx = TxRx();
 DisplayInterface displayInterface = DisplayInterface();
 Keyboard_M5 keyboardM5 = Keyboard_M5();
 PiezoBuzzer piezoBuzzer = PiezoBuzzer();
@@ -122,9 +122,9 @@ void setup()
   Serial.println(freeMemory());
   displayInterface.init();
   keyboardM5.init();
-  txRx.init();
   piezoBuzzer.init();
   enterPin();
+  txRx.init(PIN);
 }
 
 void loop()
