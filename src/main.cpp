@@ -12,6 +12,7 @@ TxRx txRx = TxRx();
 DisplayInterface displayInterface = DisplayInterface();
 Keyboard_M5 keyboardM5 = Keyboard_M5();
 PiezoBuzzer piezoBuzzer = PiezoBuzzer();
+int retries = 0;
 
 void keyboardLoop()
 {
@@ -30,12 +31,29 @@ void displayLoop()
   displayInterface.displayMsg(keyboardM5.get());
   if (keyboardM5.escaped())
   {
-    Serial.println("clearing");
     // TODO: transmit in the display loop makes no sense
-    txRx.transmit(keyboardM5.get());
-    keyboardM5.clear();
-    displayInterface.displayMsg("Sent!");
-    delay(1000);
+    bool success = txRx.transmit(keyboardM5.get());
+    if (success)
+    {
+      displayInterface.displayMsg("Sent!");
+      keyboardM5.clear();
+      retries = 0;
+      delay(1000);
+    }
+    else
+    {
+      if (retries > 3)
+      {
+        displayInterface.displayMsg("Failed. Clearing message.");
+        keyboardM5.clear();
+        retries = 0;
+        delay(2000);
+      }
+      displayInterface.displayMsg("Failed. Retrying.");
+      retries++;
+      // TODO; retry logic should live in TxRx.cpp
+      delay(1000);
+    }
   }
   int end = millis();
   Serial.println("Display MS:");
@@ -65,7 +83,7 @@ TimedAction receiveLoopAction = TimedAction(100, receiveLoop);
 
 void enterPin()
 {
-  displayInterface.displayMsg("Wireless Chat Appliance");
+  displayInterface.displayMsg("Wireless Chat\0\0\0\0\0Appliance");
   delay(2000);
   char pinMsg[32];
   char *promptMsg = "Enter PIN:";
@@ -104,13 +122,7 @@ void enterPin()
     j++;
   }
   keyboardM5.clear();
-  displayInterface.displayMsg("Success!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
-  delay(2000);
   displayInterface.displayMsg("Welcome to Chat!");
-  delay(2000);
-  displayInterface.displayMsg("Using PIN:");
-  delay(2000);
-  displayInterface.displayMsg(PIN);
   delay(2000);
 }
 
