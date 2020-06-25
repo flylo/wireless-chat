@@ -42,7 +42,7 @@ void displayLoop()
     }
     else
     {
-      if (retries > 3)
+      if (retries == 2)
       {
         displayInterface.displayMsg("Failed. Clearing message.");
         keyboardM5.clear();

@@ -34,11 +34,15 @@ bool serverHandshake()
       Serial.println("FOUND SYN!");
       encryptedDriver.send((uint8_t *)ACK, strlen(ACK));
       encryptedDriver.waitPacketSent();
+      encryptedDriver.send((uint8_t *)ACK, strlen(ACK));
+      encryptedDriver.waitPacketSent();
       return true;
     }
     else
     {
       Serial.println("NOT SYN!");
+      encryptedDriver.send(NAK, strlen(NAK));
+      encryptedDriver.waitPacketSent();
       encryptedDriver.send(NAK, strlen(NAK));
       encryptedDriver.waitPacketSent();
       return false;
@@ -51,7 +55,7 @@ bool clientHandshake()
 {
   encryptedDriver.send(SYN, strlen(SYN));
   encryptedDriver.waitPacketSent();
-  if (!encryptedDriver.waitAvailableTimeout(6000))
+  if (!encryptedDriver.waitAvailableTimeout(2000))
   {
     Serial.println("timeout");
     return false;
@@ -81,12 +85,16 @@ bool TxRx::transmit(char *txMsg)
 {
   if (clientHandshake())
   {
-    delay(200); // pause to allow for server to switch back to RX mode
+    encryptedDriver.setMode(RHModeTx);
     encryptedDriver.send((uint8_t *)txMsg, strlen(txMsg));
     bool sent = encryptedDriver.waitPacketSent();
+    // send twice lol
+    delay(100);
+    encryptedDriver.send((uint8_t *)txMsg, strlen(txMsg));
+    sent = encryptedDriver.waitPacketSent();
     if (sent)
     {
-      if (!encryptedDriver.waitAvailableTimeout(6000))
+      if (!encryptedDriver.waitAvailableTimeout(2000))
       {
         Serial.println("timeout waiting for receive ack");
         return false;
@@ -123,7 +131,7 @@ bool TxRx::tryReceive()
 {
   if (serverHandshake())
   {
-    if (!encryptedDriver.waitAvailableTimeout(1000))
+    if (!encryptedDriver.waitAvailableTimeout(2000))
     {
       Serial.println("receive timeout");
       return false;
@@ -144,7 +152,11 @@ bool TxRx::tryReceive()
         }
       }
       // ACK the message
-      delay(200); // pause to allow for client to switch back to RX mode
+      // NOTE: seems like ACKing twice works better... TX->RX switching is slow i guess
+      delay(100); // pause to allow for client to switch back to RX mode
+      encryptedDriver.send((uint8_t *)ACK, strlen(ACK));
+      encryptedDriver.waitPacketSent();
+      delay(100); // pause to allow for client to switch back to RX mode
       encryptedDriver.send((uint8_t *)ACK, strlen(ACK));
       encryptedDriver.waitPacketSent();
       return true;
