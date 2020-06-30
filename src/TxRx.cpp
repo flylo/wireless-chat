@@ -1,5 +1,5 @@
 #include "TxRx.h"
-
+const int GLOBAL_TX_RETRIES = 1;
 const char SYN_CHAR = '\26';
 const char *ACK = "\6\0";
 const char *NAK = "\25\0";
@@ -57,7 +57,7 @@ bool _transmit(char *txMsg)
 bool TxRx::transmit(char *txMsg)
 {
   int retries = 0;
-  while (retries < 2)
+  while (retries < GLOBAL_TX_RETRIES)
   {
     if (_transmit(txMsg))
     {
