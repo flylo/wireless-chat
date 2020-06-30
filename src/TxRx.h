@@ -7,18 +7,17 @@
 #include <AES.h>
 #include <RHReliableDatagram.h>
 
+#define DEFAULT_ADDR 0
+
 class TxRx
 {
-
-// private:
-  // RH_NRF24 radio;
 
 public:
   TxRx();
   bool tryReceive();
   bool transmit(char *txMsg);
   char *getReceiveMsg();
-  void init(char* PIN);
+  void init(char *PIN);
   void clear();
 };
 

@@ -1,63 +1,141 @@
-// nrf24_server
+#include <Arduino.h>
+#include <TxRx.h>
+#include <DisplayInterface.h>
+#include <Keyboard_M5.h>
+#include <PiezoBuzzer.h>
+#include <TimedAction.h>
+#include <MemoryFree.h>
 
-#include <SPI.h>
-#include <RH_NRF24.h>
-#include <RHReliableDatagram.h>
-// Define addresses for radio channels
-#define CLIENT_ADDRESS 1
-#define SERVER_ADDRESS 2
-#define DEFAULT_ADDR 0
+const uint8_t PIN_SIZE = 16;
+char PIN[PIN_SIZE];
+TxRx txRx = TxRx();
+DisplayInterface displayInterface = DisplayInterface();
+Keyboard_M5 keyboardM5 = Keyboard_M5();
+PiezoBuzzer piezoBuzzer = PiezoBuzzer();
 
-// Singleton instance of the radio driver
-RH_NRF24 lol;
-// Sets the radio driver to NRF24 and the server address to 2
-RHReliableDatagram nrf24(lol, DEFAULT_ADDR);
-// RH_NRF24 nrf24(8, 7); // use this to be electrically compatible with Mirf
-// RH_NRF24 nrf24(8, 10);// For Leonardo, need explicit SS pin
-// RH_NRF24 nrf24(8, 7); // For RFM73 on Anarduino Mini
+void keyboardLoop()
+{
+  int start = millis();
+  keyboardM5.loop();
+  int end = millis();
+  Serial.println("Keyboard MS:");
+  Serial.println(end - start);
+}
+
+void displayLoop()
+{
+  int start = millis();
+  Serial.println(F("trying to display"));
+  Serial.println(keyboardM5.get());
+  displayInterface.displayMsg(keyboardM5.get());
+  if (keyboardM5.escaped())
+  {
+    // TODO: transmit in the display loop makes no sense
+    bool success = txRx.transmit(keyboardM5.get());
+    if (success)
+    {
+      displayInterface.displayMsg("Sent!\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
+      keyboardM5.clear();
+      delay(1000);
+    }
+    else
+    {
+      displayInterface.displayMsg("Failed. Clearing message.");
+      keyboardM5.clear();
+      delay(1000);
+    }
+  }
+  int end = millis();
+  Serial.println("Display MS:");
+  Serial.println(end - start);
+}
+
+void receiveLoop()
+{
+  int start = millis();
+  Serial.println(F("trying to receive"));
+  if (txRx.tryReceive())
+  {
+    Serial.println(F("Received!"));
+    piezoBuzzer.buzz();
+    Serial.println(txRx.getReceiveMsg());
+    displayInterface.displayMsg((char *)txRx.getReceiveMsg());
+    delay(5000);
+    txRx.clear();
+  }
+  int end = millis();
+  Serial.println("Receive MS:");
+  Serial.println(end - start);
+}
+
+TimedAction keyboardLoopAction = TimedAction(100, keyboardLoop);
+TimedAction displayLoopAction = TimedAction(300, displayLoop);
+TimedAction receiveLoopAction = TimedAction(100, receiveLoop);
+
+void enterPin()
+{
+  displayInterface.displayMsg("Wireless Chat   Appliance");
+  delay(2000);
+  char pinMsg[32];
+  char *promptMsg = "Enter PIN:";
+  while (!keyboardM5.escaped())
+  {
+    uint8_t i = 0;
+    while (i < 16)
+    {
+      if (i < strlen(promptMsg))
+      {
+        pinMsg[i] = promptMsg[i];
+      }
+      else
+      {
+        pinMsg[i] = '\0';
+      }
+      i++;
+    }
+    keyboardM5.loop();
+    char *currentPinBuffer = keyboardM5.get();
+    uint8_t j = 0;
+    while (j < PIN_SIZE)
+    {
+      pinMsg[j + PIN_SIZE] = currentPinBuffer[j];
+      PIN[j] = currentPinBuffer[j];
+      j++;
+    }
+    displayInterface.displayMsg(pinMsg);
+    delay(200);
+  }
+  char *currentPinBuffer = keyboardM5.get();
+  int j = 0;
+  while (j < PIN_SIZE)
+  {
+    PIN[j] = currentPinBuffer[j];
+    j++;
+  }
+  keyboardM5.clear();
+  displayInterface.displayMsg("Welcome to Chat!");
+  delay(2000);
+}
 
 void setup()
 {
-    Serial.begin(9600);
-    while (!Serial)
-        ; // wait for serial port to connect. Needed for Leonardo only
-    if (!nrf24.init())
-        Serial.println("init failed");
-    // Defaults after init are 2.402 GHz (channel 2), 2Mbps, 0dBm
-    //   if (!nrf24.setChannel(1))
-    //     Serial.println("setChannel failed");
-    //   if (!nrf24.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
-    //     Serial.println("setRF failed");
+  Serial.begin(9600);
+  Serial.println("initializing");
+  Serial.print("freeMemory()=");
+  Serial.println(freeMemory());
+  displayInterface.init();
+  keyboardM5.init();
+  piezoBuzzer.init();
+  enterPin();
+  txRx.init(PIN);
 }
 
 void loop()
 {
-    if (nrf24.available())
-    {
-        // Should be a message for us now
-        uint8_t buf[RH_NRF24_MAX_MESSAGE_LEN];
-        uint8_t len = sizeof(buf);
-        uint8_t from;
-        if (nrf24.recvfromAck(buf, &len, &from))
-        {
-            Serial.print("got request: ");
-            Serial.println((char *)buf);
-
-            // Send a reply
-            uint8_t data[] = "And hello back to you";
-            if (nrf24.sendtoWait(data, sizeof(data), from))
-            {
-                Serial.println("Sent a reply");
-            }
-            else
-            {
-                Serial.println("sendToWait failed");
-            }
-            
-        }
-        else
-        {
-            Serial.println("recv failed");
-        }
-    }
+  Serial.println(F("main loop:"));
+  Serial.print("freeMemory()=");
+  Serial.println(freeMemory());
+  keyboardLoopAction.check();
+  displayLoopAction.check();
+  receiveLoopAction.check();
 }
