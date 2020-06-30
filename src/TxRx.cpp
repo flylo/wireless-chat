@@ -143,8 +143,8 @@ void TxRx::init(char *PIN)
     Serial.println("setChannel failed");
   if (!radio.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
     Serial.println("setRF failed");
-  reliableRadio.setTimeout(200);
-  reliableRadio.setRetries(10);
+  reliableRadio.setTimeout(150);
+  reliableRadio.setRetries(15);
   // Try to receive to clear out the buffer
   tryReceive();
   radio.setModeRx();
