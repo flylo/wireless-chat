@@ -5,6 +5,7 @@
 #include <RHEncryptedDriver.h>
 #include <SPI.h>
 #include <AES.h>
+#include <RHReliableDatagram.h>
 
 class TxRx
 {

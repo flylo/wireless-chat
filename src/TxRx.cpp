@@ -6,7 +6,7 @@ char rxMsg[RH_NRF24_MAX_MESSAGE_LEN];
 RH_NRF24 radio;
 AES128 aes = AES128();
 RHEncryptedDriver encryptedDriver(radio, aes);
-
+RHReliableDatagram manager(encryptedDriver, CLIENT_ADDRESS);
 TxRx::TxRx()
 {
 }
@@ -25,13 +25,15 @@ bool _transmit(char *txMsg)
   if (sent)
   {
     encryptedDriver.setMode(RHGenericDriver::RHModeRx);
+    delay(3000);
     Serial.println("mode");
     Serial.println(encryptedDriver.mode());
-    if (!encryptedDriver.waitAvailableTimeout(3000))
-    {
-      Serial.println("timeout waiting for receive ack");
-      return false;
-    };
+
+    // if (!encryptedDriver.waitAvailableTimeout(3000))
+    // {
+    //   Serial.println("timeout waiting for receive ack");
+    //   return false;
+    // };
     uint8_t ackResponse[RH_NRF24_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(ackResponse);
     if (encryptedDriver.recv(ackResponse, &len))
@@ -80,14 +82,13 @@ bool TxRx::tryReceive()
 {
   uint8_t receive_buffer[RH_NRF24_MAX_MESSAGE_LEN];
   uint8_t buflen = sizeof(receive_buffer);
-  encryptedDriver.setMode(RHGenericDriver::RHModeRx);
   if (encryptedDriver.recv(receive_buffer, &buflen))
   {
     Serial.println("LOL");
     char syn = (char)receive_buffer[0];
     if (syn != SYN_CHAR)
     {
-      delay(1500); // pause to allow for client to switch back to RX mode
+      delay(500); // pause to allow for client to switch back to RX mode
       for (int iters = 0; iters < 3; iters++)
       {
         encryptedDriver.send((uint8_t *)NAK, strlen(NAK));
@@ -109,7 +110,7 @@ bool TxRx::tryReceive()
     // ACK the message
     // NOTE: seems like ACKing a few times works better... TX->RX switching is slow i guess
     Serial.println("sending ACK");
-    delay(1500); // pause to allow for client to switch back to RX mode
+    delay(500); // pause to allow for client to switch back to RX mode
     for (int iters = 0; iters < 3; iters++)
     {
       encryptedDriver.send((uint8_t *)ACK, strlen(ACK));
@@ -134,10 +135,10 @@ void TxRx::init(char *PIN)
   aes.setKey(PIN, 16);
   if (!encryptedDriver.init())
     Serial.println("init failed");
-  // Defaults after init are 2.402 GHz (channel 2), 2Mbps, 0dBm
-  if (!radio.setChannel(1))
+  // Channel 2 and 
+  if (!radio.setChannel(2))
     Serial.println("setChannel failed");
-  if (!radio.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
+  if (!radio.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPowerm12dBm))
     Serial.println("setRF failed");
   // Try to receive to clear out the buffer
   tryReceive();
