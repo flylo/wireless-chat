@@ -13,9 +13,15 @@ class TxRx
 {
 
 public:
+  typedef enum
+  {
+    Broadcasted = 0,
+    Sent,
+    Delivered
+  } ConfirmationType;
   TxRx();
   bool tryReceive();
-  bool transmit(char *txMsg);
+  ConfirmationType transmit(char *txMsg);
   char *getReceiveMsg();
   void init(char *PIN);
   void clear();

@@ -1,5 +1,5 @@
 #include "TxRx.h"
-const int GLOBAL_TX_RETRIES = 1;
+const int GLOBAL_TX_RETRIES = 0;
 const char SYN_CHAR = '\26';
 const char *ACK = "\6\0";
 const char *NAK = "\25\0";
@@ -13,7 +13,7 @@ TxRx::TxRx()
 {
 }
 
-bool _transmit(char *txMsg)
+TxRx::ConfirmationType _transmit(char *txMsg)
 {
   // add the SYN byte
   char msgWithSyn[31];
@@ -27,14 +27,9 @@ bool _transmit(char *txMsg)
   bool sent = reliableRadio.sendtoWait((uint8_t *)msgWithSyn, strlen(msgWithSyn), DEFAULT_ADDR);
   if (sent)
   {
-    if (!reliableRadio.waitAvailableTimeout(3000))
-    {
-      Serial.println("timeout waiting for receive ack");
-      return false;
-    };
     uint8_t ackResponse[RH_NRF24_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(ackResponse);
-    if (reliableRadio.recvfromAck(ackResponse, &len))
+    if (reliableRadio.recvfromAckTimeout(ackResponse, &len, 6000))
     {
       char respByte = (char)ackResponse[0];
       Serial.println("rbyte");
@@ -42,33 +37,44 @@ bool _transmit(char *txMsg)
       if (respByte == ACK[0])
       {
         Serial.println("ACKED");
-        return true;
+        return TxRx::Delivered;
       }
       else
       {
         Serial.println("NOT ACKED");
-        return false;
+        return TxRx::Sent;
       }
-    }
-  }
-  return false;
-}
-
-bool TxRx::transmit(char *txMsg)
-{
-  int retries = 0;
-  while (retries < GLOBAL_TX_RETRIES)
-  {
-    if (_transmit(txMsg))
-    {
-      return true;
     }
     else
     {
-      retries++;
+      Serial.println("Timeout out waiting for ack");
+      return TxRx::Sent;
     }
   }
-  return false;
+  else
+  {
+   Serial.println("Could not confirm send");
+  return TxRx::Broadcasted; 
+  }
+}
+
+TxRx::ConfirmationType TxRx::transmit(char *txMsg)
+{
+  int retries = 0;
+  while (retries <= GLOBAL_TX_RETRIES)
+  {
+    ConfirmationType txResult = _transmit(txMsg);
+    if (txResult == ConfirmationType::Broadcasted)
+    {
+      retries++;
+    }
+    else
+    {
+      return txResult;
+      break;
+    }
+  }
+  return ConfirmationType::Broadcasted;
 }
 
 char *TxRx::getReceiveMsg()
@@ -84,7 +90,7 @@ bool TxRx::tryReceive()
   {
     if (reliableRadio.recvfromAck(receive_buffer, &buflen))
     {
-      Serial.println("LOL");
+      Serial.println("found msg");
       char syn = (char)receive_buffer[0];
       if (syn != SYN_CHAR)
       {
@@ -133,12 +139,13 @@ void TxRx::init(char *PIN)
   aes.setKey(PIN, 16);
   if (!reliableRadio.init())
     Serial.println("init failed");
-  reliableRadio.setTimeout(500);
-  reliableRadio.setRetries(5);
-  if (!radio.setChannel(124))
+  if (!radio.setChannel(75))
     Serial.println("setChannel failed");
-  if (!radio.setRF(RH_NRF24::DataRate250kbps, RH_NRF24::TransmitPower0dBm))
+  if (!radio.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
     Serial.println("setRF failed");
+  reliableRadio.setTimeout(200);
+  reliableRadio.setRetries(10);
   // Try to receive to clear out the buffer
   tryReceive();
+  radio.setModeRx();
 }
