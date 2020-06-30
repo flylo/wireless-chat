@@ -2,20 +2,22 @@
 #define TX_RX_H
 #include <Arduino.h>
 #include <RH_NRF24.h>
+#include <RHEncryptedDriver.h>
 #include <SPI.h>
+#include <AES.h>
+#include <RHReliableDatagram.h>
+
+#define DEFAULT_ADDR 0
 
 class TxRx
 {
-
-private:
-  RH_NRF24 radio;
 
 public:
   TxRx();
   bool tryReceive();
   bool transmit(char *txMsg);
   char *getReceiveMsg();
-  void init();
+  void init(char *PIN);
   void clear();
 };
 

@@ -1,6 +1,6 @@
 #include <Keyboard_M5.h>
 
-const int BUF_SIZE = 31;
+const int BUF_SIZE = 30;
 const int DEL = 8;
 const int RETURN = 13;
 const char NULL_CHAR = '\0';
@@ -48,7 +48,10 @@ void Keyboard_M5::loop()
             pointer--;
             break;
         case RETURN:
-            keyboardMsgBuffer[pointer] = ESC_CHAR;
+            if (pointer > 0 && keyboardMsgBuffer[pointer - 1] != ESC_CHAR)
+            {
+                keyboardMsgBuffer[pointer] = ESC_CHAR;
+            }
             break;
         default:
             if (pointer < BUF_SIZE - 1)
