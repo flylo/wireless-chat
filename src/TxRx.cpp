@@ -1,4 +1,8 @@
 #include "TxRx.h"
+// TODO smoke?
+// #include <nRF24L01.h>
+// #include <RF24.h>
+
 const char SYN_CHAR = '\26';
 const char *ACK = "\6\0";
 const char *NAK = "\25\0";
@@ -6,7 +10,8 @@ char rxMsg[RH_NRF24_MAX_MESSAGE_LEN];
 RH_NRF24 radio;
 AES128 aes = AES128();
 RHEncryptedDriver encryptedDriver(radio, aes);
-RHReliableDatagram manager(encryptedDriver, CLIENT_ADDRESS);
+// RF24 radio(10, 8);  // CE, CSN
+
 TxRx::TxRx()
 {
 }
@@ -20,20 +25,22 @@ bool _transmit(char *txMsg)
   {
     msgWithSyn[i] = txMsg[i - 1];
   }
+  Serial.println("sending");
+  Serial.println(msgWithSyn);
   encryptedDriver.send((uint8_t *)msgWithSyn, strlen(msgWithSyn));
   bool sent = encryptedDriver.waitPacketSent();
   if (sent)
   {
-    encryptedDriver.setMode(RHGenericDriver::RHModeRx);
-    delay(3000);
-    Serial.println("mode");
-    Serial.println(encryptedDriver.mode());
+    // encryptedDriver.setMode(RHGenericDriver::RHModeRx);
+    // delay(30000);
+    // Serial.println("mode");
+    // Serial.println(encryptedDriver.mode());
 
-    // if (!encryptedDriver.waitAvailableTimeout(3000))
-    // {
-    //   Serial.println("timeout waiting for receive ack");
-    //   return false;
-    // };
+    if (!encryptedDriver.waitAvailableTimeout(3000))
+    {
+      Serial.println("timeout waiting for receive ack");
+      return false;
+    };
     uint8_t ackResponse[RH_NRF24_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(ackResponse);
     if (encryptedDriver.recv(ackResponse, &len))
@@ -88,13 +95,25 @@ bool TxRx::tryReceive()
     char syn = (char)receive_buffer[0];
     if (syn != SYN_CHAR)
     {
-      delay(500); // pause to allow for client to switch back to RX mode
+      Serial.println("could not decrypt");
+      // delay(500); // pause to allow for client to switch back to RX mode
       for (int iters = 0; iters < 3; iters++)
       {
         encryptedDriver.send((uint8_t *)NAK, strlen(NAK));
         encryptedDriver.waitPacketSent();
         delay(100);
       }
+      return false;
+    }
+    // ACK the message
+    // NOTE: seems like ACKing a few times works better... TX->RX switching is slow i guess
+    delay(100); // pause to allow for client to switch back to RX mode
+    for (int iters = 0; iters < 3; iters++)
+    {
+      Serial.println("sending ack");
+      encryptedDriver.send((uint8_t *)ACK, strlen(ACK));
+      encryptedDriver.waitPacketSent();
+      delay(100);
     }
     // TODO: make sure we use this everywhere
     for (int i = 1; i < RH_NRF24_MAX_MESSAGE_LEN; i++)
@@ -106,16 +125,6 @@ bool TxRx::tryReceive()
       {
         rxMsg[i - 1] = c;
       }
-    }
-    // ACK the message
-    // NOTE: seems like ACKing a few times works better... TX->RX switching is slow i guess
-    Serial.println("sending ACK");
-    delay(500); // pause to allow for client to switch back to RX mode
-    for (int iters = 0; iters < 3; iters++)
-    {
-      encryptedDriver.send((uint8_t *)ACK, strlen(ACK));
-      encryptedDriver.waitPacketSent();
-      delay(100);
     }
     return true;
   }
@@ -135,10 +144,9 @@ void TxRx::init(char *PIN)
   aes.setKey(PIN, 16);
   if (!encryptedDriver.init())
     Serial.println("init failed");
-  // Channel 2 and 
-  if (!radio.setChannel(2))
+  if (!radio.setChannel(124))
     Serial.println("setChannel failed");
-  if (!radio.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPowerm12dBm))
+  if (!radio.setRF(RH_NRF24::DataRate250kbps, RH_NRF24::TransmitPowerm6dBm))
     Serial.println("setRF failed");
   // Try to receive to clear out the buffer
   tryReceive();

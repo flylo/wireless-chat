@@ -48,7 +48,10 @@ void Keyboard_M5::loop()
             pointer--;
             break;
         case RETURN:
-            keyboardMsgBuffer[pointer] = ESC_CHAR;
+            if (pointer > 0 && keyboardMsgBuffer[pointer - 1] != ESC_CHAR)
+            {
+                keyboardMsgBuffer[pointer] = ESC_CHAR;
+            }
             break;
         default:
             if (pointer < BUF_SIZE - 1)
